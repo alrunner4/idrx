@@ -29,9 +29,9 @@
             let pkg = import (pkgs.fetchFromGitHub { inherit owner repo rev hash; })
               { idrx = self; };
             in decorate-package pkgs pkg;
-          importFromSrc = {src, ipkgName, idrisLibraries, version ? ""}:
+          importFromSrc = {src, ipkgName, idrisLibraries, version ? "", buildInputs ? [], runtimeInputs ? []}:
             decorate-package pkgs
-              (pkgs.idris2Packages.buildIdris {inherit src ipkgName idrisLibraries version; }
+              (pkgs.idris2Packages.buildIdris {inherit src ipkgName idrisLibraries version; nativeBuildInputs = buildInputs; buildInputs = runtimeInputs; }
                 // { inherit ipkgName idrisLibraries version; });
           upstream = pkgs.idris2Packages;
         };

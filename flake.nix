@@ -7,8 +7,7 @@
 
   outputs = { self, nixpkgs }:
     let
-        nixpkgslib = import <nixpkgs/lib>;
-        transitive-dependencies = p: nixpkgslib.unique
+        transitive-dependencies = p: nixpkgs.lib.unique
           (p.idrisLibraries ++ builtins.concatMap transitive-dependencies p.idrisLibraries);
         decorate-package = pkgs: p: p // rec {
           idrisLibrariesClosure = transitive-dependencies p;

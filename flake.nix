@@ -11,7 +11,7 @@
           (p.idrisLibraries ++ builtins.concatMap transitive-dependencies p.idrisLibraries);
         decorate-package = pkgs: p: p // rec {
           idrisLibrariesClosure = transitive-dependencies p;
-          repl = pkgs.writeShellScript "${p.ipkgName}-repl" ''
+          repl = pkgs.writeShellScriptBin "${p.ipkgName}-repl" ''
             export IDRIS2_PACKAGE_PATH+=:${
               builtins.concatStringsSep ":"
                 (builtins.map

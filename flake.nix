@@ -17,7 +17,7 @@
                 (builtins.map
                   (dep: "${dep.library {}}/lib/idris2-${pkgs.idris2.version}")
                   idrisLibrariesClosure)}
-            export IDRIS2_CFLAGS+=" -I${builtins.concatStringsSep " -I" (builtins.map (i: "${i}") p.buildInputs)}/include"
+            export IDRIS2_CPPFLAGS+=" -I${builtins.concatStringsSep " -I" (builtins.map (i: "${i}") p.buildInputs)}/include"
             exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \
                 ${pkgs.idris2}/bin/idris2 --repl ${p.ipkgName}.ipkg
             '';

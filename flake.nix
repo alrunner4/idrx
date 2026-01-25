@@ -17,6 +17,7 @@
                 (builtins.map
                   (dep: "${dep.library {}}/lib/idris2-${pkgs.idris2.version}")
                   idrisLibrariesClosure)}
+            export IDRIS2_LIBS=${builtins.concatStringsSep ":" (builtins.map (i: "${i}") p.buildInputs)}
             exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \
                 ${pkgs.idris2}/bin/idris2 --repl ${p.ipkgName}.ipkg
             '';
@@ -31,7 +32,7 @@
           importFromSrc = {src, ipkgName, idrisLibraries ? [], version ? "", buildInputs ? [], runtimeInputs ? []}:
             decorate-package pkgs
               (pkgs.idris2Packages.buildIdris {inherit src ipkgName idrisLibraries version; nativeBuildInputs = buildInputs; buildInputs = runtimeInputs; }
-                // { inherit ipkgName idrisLibraries version; });
+                // { inherit buildInputs runtimeInputs ipkgName idrisLibraries version; });
           upstream = pkgs.idris2Packages;
         };
     in

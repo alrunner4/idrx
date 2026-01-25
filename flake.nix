@@ -20,10 +20,11 @@
             export CPPFLAGS="${
               builtins.concatStringsSep " "
                 (builtins.map (i: "-I${i}/include") p.buildInputs)}"
-            export LIBRARY_PATH+="${
+            LIBPATH+=":${
               builtins.concatStringsSep ":"
                 (builtins.map (l: "${l}/lib") p.runtimeInputs)}"
-            export LD_LIBRARY_PATH+=$LIBRARY_PATH
+            export LIBRARY_PATH+=:$LIBPATH
+            export LD_LIBRARY_PATH+=:$LIBPATH
             exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \
                 ${pkgs.idris2}/bin/idris2 --repl ${p.ipkgName}.ipkg
             '';

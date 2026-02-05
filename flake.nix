@@ -65,7 +65,7 @@
               nativeBuildInputs = buildInputs system pkgs;
               buildInputs = runtimeInputs system pkgs;
             } // {
-              inherit buildInputs runtimeInputs ipkgName idrisLibraries idrxLibraries version;
+              inherit buildInputs runtimeInputs ipkgName idrxLibraries version;
             })
           )
           nixpkgs.outputs.legacyPackages;

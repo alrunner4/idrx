@@ -25,9 +25,11 @@
               (builtins.map (l: "${l}/lib") p.runtimeInputs)}"
           export LIBRARY_PATH=$LIBPATH
           export LD_LIBRARY_PATH=$LIBPATH
-          ${pkgs.idris2}/bin/idris2 --list-packages
+          PACKAGE_DEPENDENCIES="${
+            builtins.concatStringsSep " "
+              (builtins.map (dep: "-p ${dep.ipkgName}") (transitive-dependencies p))}"
           exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \
-              ${pkgs.idris2}/bin/idris2 -p "${p.ipkgName}" "$@"
+              ${pkgs.idris2}/bin/idris2 -p "${p.ipkgName}" $PACKAGE_DEPENDENCIES "$@"
           '';
       };
     in

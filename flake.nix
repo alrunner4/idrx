@@ -42,11 +42,13 @@
             (import (pkgs.fetchFromGitHub { inherit owner repo rev hash; }){ idrx = self; }))
           nixpkgs.outputs.legacyPackages;
       };
-      importFromSrc = {src, ipkgName, idrisLibraries ? [], version ? "", buildInputs ? [], runtimeInputs ? []}: {
+      importFromSrc = {src, ipkgName, idrisLibraries ? (_: []), idrxLibraries ? [], version ? "", buildInputs ? [], runtimeInputs ? []}: {
         packages = builtins.mapAttrs
           (system: pkgs: decorate-package pkgs
             (pkgs.idris2Packages.buildIdris {
-              inherit src ipkgName idrisLibraries version;
+              inherit src ipkgName version;
+              idrisLibraries = idrisLibraries pkgs.idris2Packages
+                ++ builtins.map (i: i.packages.${system}.library {}) idrxLibraries;
               nativeBuildInputs = buildInputs;
               buildInputs = runtimeInputs;
             } // {

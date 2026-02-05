@@ -9,6 +9,7 @@
     let
       decorate-package = pkgs:
         let
+        system = pkgs.stdenv.hostPlatform.system;
         transitive-dependencies = p: upstream:
           let deps = p.idrisLibraries upstream ++ p.idrxLibraries;
           in nixpkgs.lib.unique (deps ++ builtins.concatMap (transitive-dependencies upstream) deps);
@@ -30,10 +31,10 @@
           repl = pkgs.writeShellScriptBin "${p.ipkgName}-repl" ''
             export CPPFLAGS="${
               builtins.concatStringsSep " "
-                (builtins.map (i: "-I${i}/include") p.buildInputs)}"
+                (builtins.map (i: "-I${i}/include") (p.buildInputs system pkgs))}"
             LIBPATH="${
               builtins.concatStringsSep ":"
-                (builtins.map LD_LIBRARY_PATH p.runtimeInputs)}"
+                (builtins.map LD_LIBRARY_PATH (p.runtimeInputs system pkgs))}"
             export LIBRARY_PATH+=:$LIBPATH
             export LD_LIBRARY_PATH+=:$LIBPATH
             exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \

@@ -24,8 +24,8 @@
               ln -s "${object}/lib" $out
               '';
             in [ "${expect-lib-dir}" ];
-        in p: p // rec {
-          idris2 = pkgs.idris2.withPackages (transitive-dependencies p);
+        decorated = p: p // rec {
+          idris2 = pkgs.idris2.withPackages (transitive-dependencies (decorated p));
           repl = pkgs.writeShellScriptBin "${ipkgName}-repl" ''
             export CPPFLAGS="${
               builtins.concatStringsSep " "
@@ -40,6 +40,7 @@
             '';
           inherit buildInputs runtimeInputs idrxLibraries version;
         };
+        in decorated;
     in
     {
       systems = builtins.attrNames nixpkgs.outputs.legacyPackages;

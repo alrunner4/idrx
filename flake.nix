@@ -8,18 +8,12 @@
   outputs = { self, nixpkgs }:
     let
       decorate-package = pkgs:
-        let transitive-dependencies = p:
-          let ipkgs = p.idrisLibraries pkgs.idris2Packages ++ p.idrxLibraries;
-          in nixpkgs.lib.unique
-            (ipkgs ++ builtins.concatMap transitive-dependencies ipkgs);
+        let transitive-dependencies = upstream: p:
+          let deps = p.idrisLibraries upstream ++ p.idrxLibraries;
+          in nixpkgs.lib.unique (deps ++ builtins.concatMap (transitive-dependencies upstream) deps);
         in p: p // rec {
-          idrisLibrariesClosure = transitive-dependencies p;
+          idris2 = pkgs.idris2.withPackages (upstream: transitive-dependencies upstream p);
           repl = pkgs.writeShellScriptBin "${p.ipkgName}-repl" ''
-            export IDRIS2_PACKAGE_PATH=${
-              builtins.concatStringsSep ":"
-                (builtins.map
-                  (dep: "${dep.library {}}/lib/idris2-${pkgs.idris2.version}")
-                  ([p] ++ idrisLibrariesClosure))}
             export CPPFLAGS="${
               builtins.concatStringsSep " "
                 (builtins.map (i: "-I${i}/include") p.buildInputs)}"
@@ -28,12 +22,8 @@
                 (builtins.map (l: "${l}/lib") p.runtimeInputs)}"
             export LIBRARY_PATH=$LIBPATH
             export LD_LIBRARY_PATH=$LIBPATH
-            PACKAGE_DEPENDENCIES="${
-              builtins.concatStringsSep " "
-                (builtins.map (dep: "-p ${dep.ipkgName}") (transitive-dependencies p))}"
-            set -x
             exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \
-                ${pkgs.idris2}/bin/idris2 -p "${p.ipkgName}" $PACKAGE_DEPENDENCIES "$@"
+                ${idris2}/bin/idris2 --repl "${p.ipkgName}.ipkg"
             '';
         };
     in

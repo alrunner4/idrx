@@ -29,24 +29,27 @@
                 ${pkgs.idris2}/bin/idris2 --repl ${p.ipkgName}.ipkg
             '';
         };
-        pkgs = import nixpkgs { system = "x86_64-linux"; };
-        lib = {
-          inherit pkgs;
+        lib = pkgs: {
           importFromGitHub = {owner, repo, rev, hash ? ""}:
             let pkg = import (pkgs.fetchFromGitHub { inherit owner repo rev hash; })
               { idrx = self; };
             in decorate-package pkgs pkg;
           importFromSrc = {src, ipkgName, idrisLibraries ? [], version ? "", buildInputs ? [], runtimeInputs ? []}:
             decorate-package pkgs
-              (pkgs.idris2Packages.buildIdris {inherit src ipkgName idrisLibraries version; nativeBuildInputs = buildInputs; buildInputs = runtimeInputs; }
-                // { inherit buildInputs runtimeInputs ipkgName idrisLibraries version; });
+              (pkgs.idris2Packages.buildIdris {
+                inherit src ipkgName idrisLibraries version;
+                nativeBuildInputs = buildInputs;
+                buildInputs = runtimeInputs;
+              } // {
+                inherit buildInputs runtimeInputs ipkgName idrisLibraries version;
+              });
           upstream = pkgs.idris2Packages;
         };
     in
     {
-      packages.x86_64-linux = {
-        default = pkgs.hello;
-        inherit lib;
-      };
+      systems = builtins.attrNames nixpkgs.outputs.legacyPackages;
+      packages = builtins.mapAttrs
+        (system: pkgs: { lib = lib pkgs; inherit pkgs; })
+        nixpkgs.outputs.legacyPackages;
     } // lib;
 }

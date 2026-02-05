@@ -23,7 +23,7 @@
               test -d "${object}/lib"
               ln -s "${object}/lib" $out
               '';
-            }; in [ "${expect-lib-dir}" ];
+            in [ "${expect-lib-dir}" ];
         in p: p // rec {
           idris2 = pkgs.idris2.withPackages (transitive-dependencies p);
           repl = pkgs.writeShellScriptBin "${p.ipkgName}-repl" ''

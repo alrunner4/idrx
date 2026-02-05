@@ -18,14 +18,12 @@
             && builtins.isList object.LD_LIBRARY_PATH
             && builtins.all builtins.isPath object.LD_LIBRARY_PATH
             then object.LD_LIBRARY_PATH
-            else let expect-lib-dir = pkgs.runCommand {
-              name = "expect-lib-dir";
-              buildCommand = ''
-                set -e
-                test -d "${object}/lib"
-                ln -s "${object}/lib" $out
-                '';
-              }; in [ "${expect-lib-dir}" ];
+            else let expect-lib-dir = pkgs.runCommand "expect-lib-dir" {} ''
+              set -e
+              test -d "${object}/lib"
+              ln -s "${object}/lib" $out
+              '';
+            }; in [ "${expect-lib-dir}" ];
         in p: p // rec {
           idris2 = pkgs.idris2.withPackages (transitive-dependencies p);
           repl = pkgs.writeShellScriptBin "${p.ipkgName}-repl" ''

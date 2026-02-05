@@ -32,9 +32,6 @@
     in
     {
       systems = builtins.attrNames nixpkgs.outputs.legacyPackages;
-      packages = builtins.mapAttrs
-        (system: pkgs: { lib = lib pkgs; inherit pkgs; })
-        nixpkgs.outputs.legacyPackages;
       importFromGitHub = {owner, repo, rev, hash ? ""}: {
         packages = builtins.mapAttrs
           (system: pkgs: decorate-package pkgs

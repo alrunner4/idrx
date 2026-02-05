@@ -16,7 +16,7 @@
             builtins.concatStringsSep ":"
               (builtins.map
                 (dep: "${dep.library {}}/lib/idris2-${pkgs.idris2.version}")
-                idrisLibrariesClosure)}
+                ([p] ++ idrisLibrariesClosure))}
           export CPPFLAGS="${
             builtins.concatStringsSep " "
               (builtins.map (i: "-I${i}/include") p.buildInputs)}"
@@ -25,8 +25,9 @@
               (builtins.map (l: "${l}/lib") p.runtimeInputs)}"
           export LIBRARY_PATH=$LIBPATH
           export LD_LIBRARY_PATH=$LIBPATH
+          ${pkgs.idris2}/bin/idris2 --list-packages
           exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \
-              ${pkgs.idris2}/bin/idris2 --repl ${p.ipkgName}.ipkg
+              ${pkgs.idris2}/bin/idris2 "$@"
           '';
       };
     in

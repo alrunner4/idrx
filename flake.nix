@@ -7,7 +7,7 @@
 
   outputs = { self, nixpkgs }:
     let
-      decorate-package = pkgs:
+      decorate-package = { pkgs, buildInputs, runtimeInputs, ipkgName, idrxLibraries, version }:
         let
         system = pkgs.stdenv.hostPlatform.system;
         transitive-dependencies = p: upstream:
@@ -38,6 +38,7 @@
             exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \
                 ${idris2}/bin/idris2 --repl "${p.ipkgName}.ipkg"
             '';
+          inherit buildInputs runtimeInputs idrxLibraries version;
         };
     in
     {
@@ -57,14 +58,14 @@
         runtimeInputs ? _: _: []}
       :{
         packages = builtins.mapAttrs
-          (system: pkgs: decorate-package pkgs
+          (system: pkgs: decorate-package
+            { inherit pkgs buildInputs runtimeInputs ipkgName idrxLibraries version; }
             (pkgs.idris2Packages.buildIdris {
               inherit src ipkgName version;
               idrisLibraries = builtins.map (i: i.packages.${system}.library {}) idrxLibraries;
               nativeBuildInputs = buildInputs system pkgs;
               buildInputs = runtimeInputs system pkgs;
             } // {
-              inherit buildInputs runtimeInputs ipkgName idrxLibraries version;
             })
           )
           nixpkgs.outputs.legacyPackages;

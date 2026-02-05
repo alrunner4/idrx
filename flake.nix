@@ -8,9 +8,22 @@
   outputs = { self, nixpkgs }:
     let
       decorate-package = pkgs:
-        let transitive-dependencies = p: upstream:
+        let
+        transitive-dependencies = p: upstream:
           let deps = p.idrisLibraries upstream ++ p.idrxLibraries;
           in nixpkgs.lib.unique (deps ++ builtins.concatMap (transitive-dependencies upstream) deps);
+        LD_LIBRARY_PATH = object:
+          if builtins.hasAttr "LD_LIBRARY_PATH" object
+            && builtins.isList object.LD_LIBRARY_PATH
+            && builtins.all builtins.isPath object.LD_LIBRARY_PATH
+            then object.LD_LIBRARY_PATH
+            else let expect-lib-dir = derivation {
+              builder = pkgs.writeShellScript "expect-lib-dir" ''
+                set -e
+                test -d "${object}/lib"
+                ln -s "${object}/lib" $out
+                '';
+                in [ "${expect-lib-dir}" ]
         in p: p // rec {
           idris2 = pkgs.idris2.withPackages (transitive-dependencies p);
           repl = pkgs.writeShellScriptBin "${p.ipkgName}-repl" ''
@@ -19,7 +32,7 @@
                 (builtins.map (i: "-I${i}/include") p.buildInputs)}"
             LIBPATH="${
               builtins.concatStringsSep ":"
-                (builtins.map (l: "${l}/lib") p.runtimeInputs)}"
+                (builtins.map LD_LIBRARY_PATH p.runtimeInputs)}"
             export LIBRARY_PATH+=:$LIBPATH
             export LD_LIBRARY_PATH+=:$LIBPATH
             exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \
@@ -39,19 +52,17 @@
         src,
         ipkgName,
         version ? "",
-        idrisLibraries ? (_: []),
         idrxLibraries ? [],
-        buildInputs ? [],
-        runtimeInputs ? []}
+        buildInputs ? _: _: [],
+        runtimeInputs ? _: _: []}
       :{
         packages = builtins.mapAttrs
           (system: pkgs: decorate-package pkgs
             (pkgs.idris2Packages.buildIdris {
               inherit src ipkgName version;
-              idrisLibraries = idrisLibraries pkgs.idris2Packages
-                ++ builtins.map (i: i.packages.${system}.library {}) idrxLibraries;
-              nativeBuildInputs = buildInputs;
-              buildInputs = runtimeInputs;
+              idrisLibraries = builtins.map (i: i.packages.${system}.library {}) idrxLibraries;
+              nativeBuildInputs = buildInputs system pkgs;
+              buildInputs = runtimeInputs system pkgs;
             } // {
               inherit buildInputs runtimeInputs ipkgName idrisLibraries idrxLibraries version;
             })

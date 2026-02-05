@@ -12,7 +12,7 @@
         decorate-package = pkgs: p: p // rec {
           idrisLibrariesClosure = transitive-dependencies p;
           repl = pkgs.writeShellScriptBin "${p.ipkgName}-repl" ''
-            export IDRIS2_PACKAGE_PATH+=:${
+            export IDRIS2_PACKAGE_PATH=${
               builtins.concatStringsSep ":"
                 (builtins.map
                   (dep: "${dep.library {}}/lib/idris2-${pkgs.idris2.version}")
@@ -23,8 +23,8 @@
             LIBPATH+=":${
               builtins.concatStringsSep ":"
                 (builtins.map (l: "${l}/lib") p.runtimeInputs)}"
-            export LIBRARY_PATH+=:$LIBPATH
-            export LD_LIBRARY_PATH+=:$LIBPATH
+            export LIBRARY_PATH=$LIBPATH
+            export LD_LIBRARY_PATH=$LIBPATH
             exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \
                 ${pkgs.idris2}/bin/idris2 --repl ${p.ipkgName}.ipkg
             '';
@@ -51,5 +51,5 @@
       packages = builtins.mapAttrs
         (system: pkgs: { lib = lib pkgs; inherit pkgs; })
         nixpkgs.outputs.legacyPackages;
-    } // lib;
+    };
 }

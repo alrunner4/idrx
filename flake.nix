@@ -26,17 +26,17 @@
             in [ "${expect-lib-dir}" ];
         in p: p // rec {
           idris2 = pkgs.idris2.withPackages (transitive-dependencies p);
-          repl = pkgs.writeShellScriptBin "${p.ipkgName}-repl" ''
+          repl = pkgs.writeShellScriptBin "${ipkgName}-repl" ''
             export CPPFLAGS="${
               builtins.concatStringsSep " "
-                (builtins.map (i: "-I${i}/include") (p.buildInputs system pkgs))}"
+                (builtins.map (i: "-I${i}/include") (buildInputs system pkgs))}"
             LIBPATH="${
               builtins.concatStringsSep ":"
-                (builtins.concatMap LD_LIBRARY_PATH (p.runtimeInputs system pkgs))}"
+                (builtins.concatMap LD_LIBRARY_PATH (runtimeInputs system pkgs))}"
             export LIBRARY_PATH+=:$LIBPATH
             export LD_LIBRARY_PATH+=:$LIBPATH
             exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \
-                ${idris2}/bin/idris2 --repl "${p.ipkgName}.ipkg"
+                ${idris2}/bin/idris2 --repl "${ipkgName}.ipkg"
             '';
           inherit buildInputs runtimeInputs idrxLibraries version;
         };

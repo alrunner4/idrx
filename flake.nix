@@ -34,7 +34,7 @@
                 (builtins.map (i: "-I${i}/include") (p.buildInputs system pkgs))}"
             LIBPATH="${
               builtins.concatStringsSep ":"
-                (builtins.map LD_LIBRARY_PATH (p.runtimeInputs system pkgs))}"
+                (builtins.concatMap LD_LIBRARY_PATH (p.runtimeInputs system pkgs))}"
             export LIBRARY_PATH+=:$LIBPATH
             export LD_LIBRARY_PATH+=:$LIBPATH
             exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \

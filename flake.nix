@@ -28,6 +28,7 @@
           PACKAGE_DEPENDENCIES="${
             builtins.concatStringsSep " "
               (builtins.map (dep: "-p ${dep.ipkgName}") (transitive-dependencies p))}"
+          set -x
           exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \
               ${pkgs.idris2}/bin/idris2 -p "${p.ipkgName}" $PACKAGE_DEPENDENCIES "$@"
           '';

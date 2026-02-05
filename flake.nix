@@ -11,7 +11,7 @@
         let
         system = pkgs.stdenv.hostPlatform.system;
         transitive-dependencies = p: upstream:
-          let deps = p.idrisLibraries upstream ++ p.idrxLibraries;
+          let deps = p.idrxLibraries;
           in nixpkgs.lib.unique (deps ++ builtins.concatMap (transitive-dependencies upstream) deps);
         LD_LIBRARY_PATH = object:
           if builtins.hasAttr "LD_LIBRARY_PATH" object

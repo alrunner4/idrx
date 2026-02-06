@@ -15,8 +15,8 @@
           in nixpkgs.lib.unique (deps ++ builtins.concatMap (p: transitive-dependencies p upstream) deps);
         LD_LIBRARY_PATH = object:
           if builtins.hasAttr "LD_LIBRARY_PATH" object
-            && builtins.isList object.LD_LIBRARY_PATH
-            && builtins.all builtins.isPath object.LD_LIBRARY_PATH
+          && builtins.isList object.LD_LIBRARY_PATH
+          && builtins.all builtins.isPath object.LD_LIBRARY_PATH
             then object.LD_LIBRARY_PATH
             else let expect-lib-dir = pkgs.runCommand "expect-lib-dir" {} ''
               set -e
@@ -25,7 +25,7 @@
               '';
             in [ "${expect-lib-dir}" ];
         decorated = p: p // rec {
-          idris2 = pkgs.idris2.withPackages (transitive-dependencies (decorated p));
+          idris2 = pkgs.idris2.withPackages (transitive-dependencies (p // {inherit idrxLibraries;}));
           repl = pkgs.writeShellScriptBin "${ipkgName}-repl" ''
             export CPPFLAGS="${
               builtins.concatStringsSep " "

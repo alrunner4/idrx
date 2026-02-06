@@ -7,12 +7,12 @@
 
   outputs = { self, nixpkgs }:
     let
+      transitive-dependencies = p: upstream:
+        let deps = if builtins.hasAttr "idrxLibraries" p then p.idrxLibraries else [];
+        in nixpkgs.lib.unique (deps ++ builtins.concatMap (p: transitive-dependencies p upstream) deps);
       decorate-package = { pkgs, buildInputs, runtimeInputs, ipkgName, idrxLibraries, version }:
         let
         system = pkgs.stdenv.hostPlatform.system;
-        transitive-dependencies = p: upstream:
-          let deps = if builtins.hasAttr "idrxLibraries" p then p.idrxLibraries else [];
-          in nixpkgs.lib.unique (deps ++ builtins.concatMap (p: transitive-dependencies p upstream) deps);
         LD_LIBRARY_PATH = object:
           if builtins.hasAttr "LD_LIBRARY_PATH" object
           && builtins.isList object.LD_LIBRARY_PATH
@@ -27,12 +27,12 @@
         decorated = p: p // rec {
           idris2 = pkgs.idris2.withPackages (transitive-dependencies (p // {inherit idrxLibraries;}));
           repl = pkgs.writeShellScriptBin "${ipkgName}-repl" ''
-            export CPPFLAGS="${
+            export CPPFLAGS=${
               builtins.concatStringsSep " "
-                (builtins.map (i: "-I${i}/include") (buildInputs system pkgs))}"
-            LIBPATH="${
+                (builtins.map (i: "-I${i}/include") (buildInputs system pkgs))}
+            LIBPATH=${
               builtins.concatStringsSep ":"
-                (builtins.concatMap LD_LIBRARY_PATH (runtimeInputs system pkgs))}"
+                (builtins.concatMap LD_LIBRARY_PATH (runtimeInputs system pkgs))}
             export LIBRARY_PATH+=:$LIBPATH
             export LD_LIBRARY_PATH+=:$LIBPATH
             exec ${pkgs.rlwrap}/bin/rlwrap --ansi-colour-aware --no-children \

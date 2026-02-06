@@ -10,7 +10,7 @@
       decorate-package = { pkgs, buildInputs, runtimeInputs, ipkgName, idrxLibraries, version }:
         let
         system = pkgs.stdenv.hostPlatform.system;
-        transitive-dependencies = p: upstream:
+        transitive-dependencies = p: trace "transitive-dependencies (${p})" upstream:
           let deps = p.idrxLibraries;
           in nixpkgs.lib.unique (deps ++ builtins.concatMap (p: transitive-dependencies p upstream) deps);
         LD_LIBRARY_PATH = object:
@@ -46,8 +46,7 @@
       systems = builtins.attrNames nixpkgs.outputs.legacyPackages;
       importFromGitHub = {owner, repo, rev, hash ? ""}: {
         packages = builtins.mapAttrs
-          (system: pkgs: decorate-package pkgs
-            (import (pkgs.fetchFromGitHub { inherit owner repo rev hash; }){ idrx = self; }))
+          (system: pkgs: (import (pkgs.fetchFromGitHub { inherit owner repo rev hash; }){ idrx = self; }))
           nixpkgs.outputs.legacyPackages;
       };
       importFromSrc = {

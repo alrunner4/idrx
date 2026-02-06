@@ -12,7 +12,7 @@
         system = pkgs.stdenv.hostPlatform.system;
         transitive-dependencies = p: trace "transitive-dependencies (${p})" (upstream:
           let deps = p.idrxLibraries;
-          in nixpkgs.lib.unique (deps ++ builtins.concatMap (p: transitive-dependencies p upstream) deps);
+          in nixpkgs.lib.unique (deps ++ builtins.concatMap (p: transitive-dependencies p upstream) deps));
         LD_LIBRARY_PATH = object:
           if builtins.hasAttr "LD_LIBRARY_PATH" object
           && builtins.isList object.LD_LIBRARY_PATH
@@ -23,7 +23,7 @@
               test -d "${object}/lib"
               ln -s "${object}/lib" $out
               '';
-            in [ "${expect-lib-dir}" ]);
+            in [ "${expect-lib-dir}" ];
         decorated = p: p // rec {
           idris2 = pkgs.idris2.withPackages (transitive-dependencies (p // {inherit idrxLibraries;}));
           repl = pkgs.writeShellScriptBin "${ipkgName}-repl" ''
